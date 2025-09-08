@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Simazvina — orientační kalkulačka</title>
+    <style>
+      :root {
+        --bg: #fdfdfd;
+        --text: #111;
+        --accent: #ff6f00;
+        --muted: #666;
+        --border: #e5e5e5;
+        --card: #fff;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      .wrapper {
+        max-width: 720px;
+        margin: auto;
+        padding: 2rem 1rem;
+      }
+      h1 {
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.5rem;
+      }
+      label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+      select {
+        width: 100%;
+        padding: 0.6rem;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: white;
+        color: var(--text);
+      }
+      .grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: 1fr 1fr;
+      }
+      @media (max-width: 600px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .row {
+        display: flex;
+        justify-content: space-between;
+        margin: 0.5rem 0;
+        gap: 0.5rem;
+      }
+      .badge {
+        background: var(--bg);
+        padding: 0.25rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        border: 1px solid var(--border);
+        color: var(--muted);
+      }
+      .total {
+        font-size: 2rem;
+        font-weight: 800;
+      }
+      .accent {
+        color: var(--accent);
+      }
+      button.copy {
+        background: var(--accent);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.6rem 1rem;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .small {
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin-top: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <h1>Orientační kalkulačka — Simazvina F1 Art</h1>
+      <div class="card">
+        <div class="grid">
+          <div>
+            <label for="cat">Co chceš vytvořit?</label>
+            <select id="cat">
+              <option value="sneakers" selected>Tenisky</option>
+              <option value="jacket">Bunda</option>
+              <option value="bag">Kabelka / doplněk</option>
+              <option value="canvas">Obraz</option>
+            </select>
+          </div>
+          <div id="sizeWrap" style="display: none">
+            <label for="size">Velikost obrazu</label>
+            <select id="size">
+              <option value="30x40" selected>30×40 cm</option>
+              <option value="40x50">40×50 cm</option>
+              <option value="50x70">50×70 cm</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid">
+          <div>
+            <label for="cmp">Náročnost</label>
+            <select id="cmp">
+              <option value="simple">Jednodušší</option>
+              <option value="standard" selected>Standard</option>
+              <option value="detailed">Detailní</option>
+            </select>
+          </div>
+          <div>
+            <label for="subj">Počet motivů (piloti/auta)</label>
+            <select id="subj">
+              <option value="1" selected>1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid">
+          <div>
+            <label for="eggs">Easter eggs</label>
+            <select id="eggs">
+              <option value="0" selected>Žádné</option>
+              <option value="1">1–2</option>
+              <option value="2">3–5</option>
+              <option value="3">Více</option>
+            </select>
+          </div>
+          <div>
+            <label for="base">Materiál dodá</label>
+            <select id="base">
+              <option value="client" selected>Zákazník</option>
+              <option value="me">Já zajistím</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid">
+          <div>
+            <label for="rush">Termín</label>
+            <select id="rush">
+              <option value="normal" selected>Standard</option>
+              <option value="rush">Expres</option>
+            </select>
+          </div>
+          <div>
+            <label for="ship">Dodání</label>
+            <select id="ship">
+              <option value="cz" selected>Česko/SK</option>
+              <option value="intl">Zahraničí</option>
+            </select>
+          </div>
+        </div>
+        <div
+          class="divider"
+          style="height: 1px; background: var(--border); margin: 1rem 0"
+        ></div>
+        <div id="breakdown"></div>
+        <div class="row" style="align-items: center; margin-top: 1rem">
+          <div class="total">
+            Orientačně: <span id="total" class="accent">0</span> Kč
+          </div>
+          <button class="copy" id="copy">Zkopírovat poptávku</button>
+        </div>
+        <div class="small">
+          Poštovné dle dopravce/země (zvlášť). Finální cena po domluvě nad
+          návrhem.
+        </div>
+      </div>
+    </div>
+    <script>
+      const el = {
+        cat: document.getElementById("cat"),
+        sizeWrap: document.getElementById("sizeWrap"),
+        size: document.getElementById("size"),
+        cmp: document.getElementById("cmp"),
+        subj: document.getElementById("subj"),
+        eggs: document.getElementById("eggs"),
+        base: document.getElementById("base"),
+        rush: document.getElementById("rush"),
+        ship: document.getElementById("ship"),
+        breakdown: document.getElementById("breakdown"),
+        total: document.getElementById("total"),
+        copy: document.getElementById("copy"),
+      };
+
+      function fmt(n) {
+        return n.toLocaleString("cs-CZ");
+      }
+
+      function baseLabor(cat, cmp, size) {
+        const sneakers = { simple: 3800, standard: 4500, detailed: 5500 };
+        const jacket = { simple: 4800, standard: 6000, detailed: 7500 };
+        const bag = { simple: 2500, standard: 3500, detailed: 5200 };
+        const canvas = {
+          "30x40": { simple: 5000, standard: 6500, detailed: 8000 },
+          "40x50": { simple: 8000, standard: 11000, detailed: 13000 },
+          "50x70": { simple: 9000, standard: 10000, detailed: 12000 },
+        };
+        if (cat === "canvas") return canvas[size || "30x40"][cmp];
+        if (cat === "sneakers") return sneakers[cmp];
+        if (cat === "jacket") return jacket[cmp];
+        if (cat === "bag") return bag[cmp];
+        return 0;
+      }
+
+      function recalc() {
+        const cat = el.cat.value;
+        const cmp = el.cmp.value;
+        const size = el.size ? el.size.value : "30x40";
+        el.sizeWrap.style.display = cat === "canvas" ? "block" : "none";
+
+        const subjects = parseInt(el.subj.value, 10);
+        const eggs = parseInt(el.eggs.value, 10);
+        const baseWho = el.base.value;
+        const rush = el.rush.value;
+
+        let labor = baseLabor(cat, cmp, size);
+        let extra = 0;
+        if (subjects > 1) {
+          const per =
+            cmp === "detailed" ? 1200 : cmp === "standard" ? 800 : 500;
+          extra = (subjects - 1) * per;
+        }
+        const eggsAdd = [0, 800, 1600, 2500][eggs];
+        let material = 0;
+        if (baseWho === "me") {
+          if (cat === "sneakers") material = 1800;
+          else if (cat === "jacket") material = 1200;
+          else if (cat === "bag") material = 1000;
+        }
+        const rushAdd = rush === "rush" ? Math.round(labor * 0.2) : 0;
+        const total = labor + extra + eggsAdd + material + rushAdd;
+
+        el.breakdown.innerHTML = `
+    <div class="row"><div class="badge">Kategorie</div><div>${cat.toUpperCase()}${cat === "canvas" ? " • " + size : ""}</div></div>
+    <div class="row"><div class="badge">Náročnost</div><div>${cmp}</div></div>
+    <div class="row"><div class="badge">Motivy</div><div>${subjects}</div></div>
+    <div class="row"><div class="badge">Easter eggs</div><div>${["0", "1–2", "3–5", "víc detailních"][eggs]}</div></div>
+    <div class="row"><div class="badge">Materiál</div><div>${baseWho === "me" ? "zajistím já" : "dodá zákazník"}</div></div>
+    <div class="row"><div class="badge">Termín</div><div>${rush === "rush" ? "expres" : "standard"}</div></div>
+    <div class="row"><div class="badge">Dodání</div><div>${el.ship.value === "cz" ? "Česko/SK" : "Zahraničí"}</div></div>
+    <div class="small">Práce: ${fmt(labor)} Kč${extra ? " • další motivy: " + fmt(extra) + " Kč" : ""}${eggsAdd ? " • eggs: " + fmt(eggsAdd) + " Kč" : ""}${material ? " • materiál: " + fmt(material) + " Kč" : ""}${rushAdd ? " • expres: " + fmt(rushAdd) + " Kč" : ""}</div>
+  `;
+        el.total.textContent = fmt(total);
+      }
+
+      ["change", "input"].forEach((ev) => {
+        Object.values(el).forEach((x) => {
+          if (x && x.addEventListener) x.addEventListener(ev, recalc);
+        });
+      });
+      recalc();
+
+      el.copy.addEventListener("click", () => {
+        const text = `Poptávka – Simazvina F1 Art
+Kategorie: ${el.cat.value}${el.cat.value === "canvas" ? " (" + el.size.value + ")" : ""}
+Náročnost: ${el.cmp.value}
+Motivy: ${el.subj.value}
+Easter eggs: ${["0", "1–2", "3–5", "víc detailních"][parseInt(el.eggs.value || "0", 10)]}
+Materiál: ${el.base.value === "me" ? "zajistí Simazvina" : "dodám sám/sama"}
+Termín: ${el.rush.value === "rush" ? "expres" : "standard"}
+Dodání: ${el.ship.value === "cz" ? "Česko/SK" : "Zahraničí"}
+Orientační cena: ${el.total.textContent} Kč`;
+        navigator.clipboard.writeText(text).then(() => {
+          el.copy.textContent = "Zkopírováno ✅";
+          setTimeout(() => (el.copy.textContent = "Zkopírovat poptávku"), 1300);
+        });
+      });
+    </script>
+  </body>
+</html>
